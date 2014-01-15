@@ -17,9 +17,9 @@ function build
   cmake -DCMAKE_INSTALL_PREFIX:PATH=$install_path         \
         -DPCL_DIR=$pcl_path                               \
         $options                                          \
-        ..
-  make
-  make install
+        .. &&
+  make &&
+  make install &&
   cd ..
 }
 
