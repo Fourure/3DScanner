@@ -5,13 +5,16 @@ project(openni_grabber)
 find_package(PCL		REQUIRED)
 find_package(OpenCV	REQUIRED)
 
-include_directories(${PCL_INCLUDE_DIRS})
-include_directories( ${OpenCV_INCLUDE_DIRS})
-
-
-link_directories(${PCL_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS})
-
+include_directories(
+  ${PCL_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
+)
+link_directories(
+  ${PCL_LIBRARY_DIRS}
+)
+add_definitions(
+  ${PCL_DEFINITIONS}
+)
 
 set(CMAKE_INSTALL_RPATH ${PCL_LIBRARY_DIRS})
 

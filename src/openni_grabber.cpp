@@ -9,6 +9,8 @@
 #include <cxmisc.h>
 
 static unsigned char myimg[640*480*3];
+static cv::Mat *img;
+
 
  class SimpleOpenNIViewer
  {
@@ -17,8 +19,7 @@ static unsigned char myimg[640*480*3];
 
 		void image_cb (const openni_wrapper::Image::Ptr &openni_img)
 		{
-			cv::Mat img(480, 640, CV_8UC3, myimg);
-			cv::imshow("RGB", img);
+			//cv::imgshow( "Window", *img);
 			
 			/*if (!i_viewer.wasStopped())
 			{
@@ -57,7 +58,9 @@ int main ()
 		for (int j = 0; j<480; ++j)
 			for (int c = 0; c<3; ++c)
 				myimg[(i*480+j)*3+c] = (unsigned char) ( 255.0 * sin(7.0*i + 5.0*j) );
-
+	img = new cv::Mat(480, 640, CV_8UC3, myimg);
+	
+	namedWindow("OpenCV");
 	
 	SimpleOpenNIViewer v;
 	v.run ();
