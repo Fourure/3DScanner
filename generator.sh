@@ -5,6 +5,7 @@ case "$HOSTNAME" in
   *) echo "Your platform is not defined in $0. Proceding with default installation."
 		install_path="$PWD/install"
 		pcl_path="/Shared/PCL-1.7/share/pcl-1.7/"
+		opencv_path="/Shared/OpenCV-2.4.8/share/OpenCV/"
 		options="-DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF"
 
 esac
@@ -16,6 +17,7 @@ function build
   cd build
   cmake -DCMAKE_INSTALL_PREFIX:PATH=$install_path         \
         -DPCL_DIR=$pcl_path                               \
+        -DOpenCV_DIR=$opencv_path                         \
         $options                                          \
         .. &&
   make &&
