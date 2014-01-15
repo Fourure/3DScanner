@@ -1,51 +1,65 @@
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
 #include <pcl/io/openni_grabber.h>
-#include <pcl/common/time.h>
+#include <pcl/visualization/cloud_viewer.h>
+#include <pcl/visualization/image_viewer.h>
+ 
+#include <cv.h>
+#include <cvaux.h>
+#include <cxcore.h>
+#include <highgui.h>
+#include <cxmisc.h>
 
-class SimpleOpenNIProcessor
-{
-public:
-  void cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGBA>::ConstPtr &cloud)
-  {
-    static unsigned count = 0;
-    static double last = pcl::getTime ();
-    if (++count == 30)
-    {
-      double now = pcl::getTime ();
-      std::cout << "distance of center pixel :" << cloud->points [(cloud->width >> 1) * (cloud->height + 1)].z << " mm. Average framerate: " << double(count)/double(now - last) << " Hz" <<  std::endl;
-      count = 0;
-      last = now;
-    }
-  }
-  
-  void run ()
-  {
-    // create a new grabber for OpenNI devices
-    pcl::Grabber* interface = new pcl::OpenNIGrabber();
+static unsigned char myimg[640*480*3];
 
-    // make callback function from member function
-    boost::function<void (const pcl::PointCloud<pcl::PointXYZRGBA>::ConstPtr&)> f =
-      boost::bind (&SimpleOpenNIProcessor::cloud_cb_, this, _1);
+ class SimpleOpenNIViewer
+ {
+	public:
+		SimpleOpenNIViewer () {}
 
-    // connect callback function for desired signal. In this case its a point cloud with color values
-    boost::signals2::connection c = interface->registerCallback (f);
+		void image_cb (const openni_wrapper::Image::Ptr &openni_img)
+		{
+			cv::Mat img(480, 640, CV_8UC3, myimg);
+			cv::imshow("RGB", img);
+			
+			/*if (!i_viewer.wasStopped())
+			{
+				i_viewer.addRGBImage(myimg, 640, 480);
+				i_viewer.spin();
+			
+				unsigned char* data = new unsigned char[img->getWidth()*img->getHeight()*3];
+				img->fillRGB(img->getWidth(), img->getHeight(), data);
+				i_viewer.addRGBImage(data, img->getWidth(), img->getHeight());
+				delete [] data;
+			
+			}
+			*/
+		}
 
-    // start receiving point clouds
-    interface->start ();
+		void run ()
+		{
+			pcl::Grabber* interface= new pcl::OpenNIGrabber();
+			
+			boost::function<void (const openni_wrapper::Image::Ptr&)> f = boost::bind (&SimpleOpenNIViewer::image_cb, this, _1);
+			interface->registerCallback (f);
+		     
+			interface->start();
 
-    // wait until user quits program with Ctrl-C, but no busy-waiting -> sleep (1);
-    while (true)
-      boost::this_thread::sleep (boost::posix_time::seconds (1));
+			while (1)
+				boost::this_thread::sleep (boost::posix_time::seconds (1));
 
-    // stop the grabber
-    interface->stop ();
-  }
+			interface->stop();
+		}
 };
 
 int main ()
-{
-  SimpleOpenNIProcessor v;
-  v.run ();
-  return (0);
+{ 
+	
+	for (int i = 0; i<640; ++i)
+		for (int j = 0; j<480; ++j)
+			for (int c = 0; c<3; ++c)
+				myimg[(i*480+j)*3+c] = (unsigned char) ( 255.0 * sin(7.0*i + 5.0*j) );
+
+	
+	SimpleOpenNIViewer v;
+	v.run ();
+	return 0;
 }
