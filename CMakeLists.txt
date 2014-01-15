@@ -2,11 +2,16 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 project(openni_grabber)
 
-find_package(PCL REQUIRED)
+find_package(PCL		REQUIRED)
+find_package(OpenCV	REQUIRED)
 
 include_directories(${PCL_INCLUDE_DIRS})
+include_directories( ${OpenCV_INCLUDE_DIRS})
+
+
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
+
 
 set(CMAKE_INSTALL_RPATH ${PCL_LIBRARY_DIRS})
 
@@ -15,6 +20,7 @@ add_executable(openni_grabber
 )
 target_link_libraries(openni_grabber
   ${PCL_LIBRARIES}
+  ${OpenCV_LIBS}
 )
 
 
@@ -25,3 +31,5 @@ install(
   DESTINATION
     ${CMAKE_INSTALL_PREFIX}/bin
  )
+
+
