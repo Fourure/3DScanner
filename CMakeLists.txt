@@ -8,7 +8,7 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-
+set(CMAKE_INSTALL_RPATH ${PCL_LIBRARY_DIRS})
 
 add_executable(openni_grabber
   src/openni_grabber.cpp
