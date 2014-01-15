@@ -2,15 +2,10 @@
 
 # Define here the installation path for your platform
 case "$HOSTNAME" in
-  "Arcteryx") echo "Installation processed on Arcteryx"
-		install_path="$PWD/install"
-    options="-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON"
-    ;;
-
   *) echo "Your platform is not defined in $0. Proceding with default installation."
 		install_path="$PWD/install"
-		options="-DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF"
-    exit
+		pcl_path="/Shared/PCL-1.7/share/pcl-1.7/"
+		options="-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON"
 
 esac
 
@@ -19,10 +14,11 @@ function build
 {
   mkdir -p build
   cd build
-  cmake -DCMAKE_INSTALL_PREFIX:PATH=install_path         \
-        -DBUILD_ALL_DATA_MODULES:BOOL=ON                 \
-        $options                                         \
+  cmake -DCMAKE_INSTALL_PREFIX:PATH=$install_path         \
+        -DPCL_DIR=$pcl_path                               \
+        $options                                          \
         ..
+  make
   make install
   cd ..
 }
