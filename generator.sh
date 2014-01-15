@@ -5,7 +5,7 @@ case "$HOSTNAME" in
   *) echo "Your platform is not defined in $0. Proceding with default installation."
 		install_path="$PWD/install"
 		pcl_path="/Shared/PCL-1.7/share/pcl-1.7/"
-		options="-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON"
+		options="-DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF"
 
 esac
 
