@@ -1,60 +1,83 @@
-//#include <pcl/io/openni_grabber.h>
-//#include <pcl/visualization/cloud_viewer.h>
-//#include <pcl/visualization/image_viewer.h>
+#include <pcl/io/openni_grabber.h>
+#include <pcl/visualization/cloud_viewer.h>
+#include <pcl/visualization/image_viewer.h>
  
 #include <opencv2/core/core.hpp>
+#include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
-
-cv::Mat* img;
 
 class SimpleOpenNIViewer
 {
 	public:
-		SimpleOpenNIViewer () {}
-
-		void image_cb (const openni_wrapper::Image::Ptr &openni_img)
+		SimpleOpenNIViewer ()  : viewer("Point Cloud") {}
+		
+		cv::Mat convertToCvMat(const openni_wrapper::DepthImage::ConstPtr dim)
 		{
-			cv::imgshow( "Window", *img);
+			cv::Mat frameDepth(dim->getHeight(),dim->getWidth(), CV_32FC1);
 			
-			if (!i_viewer.wasStopped())
-			{
-				i_viewer.addRGBImage(myimg, 640, 480);
-				i_viewer.spin();
+			dim->fillDepthImage(frameDepth.cols,frameDepth.rows, (float*)frameDepth.data,frameDepth.step);
 			
-				unsigned char* data = new unsigned char[img->getWidth()*img->getHeight()*3];
-				img->fillRGB(img->getWidth(), img->getHeight(), data);
-				i_viewer.addRGBImage(data, img->getWidth(), img->getHeight());
-				delete [] data;
+			return frameDepth;
+		}
+		
+		cv::Mat convertToCvMat(const openni_wrapper::Image::ConstPtr im)
+		{
+			cv::Mat frameRGB(im->getHeight(),im->getWidth(), CV_8UC3);
 			
-			}
+			im->fillRGB(frameRGB.cols,frameRGB.rows,frameRGB.data,frameRGB.step);
+			
+			return frameRGB;
+		}
+
+		void camerasCallback (	const boost::shared_ptr<openni_wrapper::Image>& im, 
+							const boost::shared_ptr<openni_wrapper::DepthImage>& dim, 
+							float constant	  )
+		{
+			cv::Mat depth_image_ = convertToCvMat(dim);
+			cv::Mat rgb_image_ = convertToCvMat(im);
+			
+			cv::cvtColor(rgb_image_, rgb_image_, CV_RGB2BGR );
+			
+			cv::imshow("RGB", rgb_image_);
+			cv::imshow("Depth", depth_image_);
+			cv::waitKey(1);
+		}
+		
+		void cloudCallback (const pcl::PointCloud<pcl::PointXYZRGBA>::ConstPtr &cloud)
+		{
+			if (!viewer.wasStopped())
+				viewer.showCloud (cloud);
 		}
 
 		void run ()
 		{
 			pcl::Grabber* interface = new pcl::OpenNIGrabber();
 			
-			boost::function<void (const openni_wrapper::Image::Ptr&)> f = boost::bind (&SimpleOpenNIViewer::image_cb, this, _1);
-			interface->registerCallback (f);
+			boost::function<void (const pcl::PointCloud<pcl::PointXYZRGBA>::ConstPtr&)> c_cb =
+				boost::bind (&SimpleOpenNIViewer::cloudCallback, this, _1);
+			
+			boost::function<void (const boost::shared_ptr<openni_wrapper::Image>&, 
+				const boost::shared_ptr<openni_wrapper::DepthImage>&, 
+				float constant)>  nc_cb = boost::bind (&SimpleOpenNIViewer::camerasCallback, this, _1, _2, _3);
+			
+			interface->registerCallback (nc_cb);
+			interface->registerCallback (c_cb);
 		     
 			interface->start();
 
-			while (1)
+			while (!viewer.wasStopped())
 				boost::this_thread::sleep (boost::posix_time::seconds (1));
 
 			interface->stop();
 		}
+		
+		pcl::visualization::CloudViewer viewer;
 };
-
 
 int main ()
 { 
-	img = new cv::Mat(640, 480, CV_8UC3, cv::Scalar(1, 0, 0));
-
-	cv::imshow("Mandelbrot", *img);
-	cv::waitKey(0);
-			
-	//SimpleOpenNIViewer v;
-	//v.run ();
+	SimpleOpenNIViewer v;
+	v.run ();
 	
 	return 0;
 }
