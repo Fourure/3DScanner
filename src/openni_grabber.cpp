@@ -1,15 +1,16 @@
-#include <pcl/io/openni_grabber.h>
-#include <pcl/visualization/cloud_viewer.h>
-#include <pcl/visualization/image_viewer.h>
- 
 #include <cv.h>
 #include <cvaux.h>
 #include <cxcore.h>
 #include <highgui.h>
 #include <cxmisc.h>
 
+/*#include <pcl/io/openni_grabber.h>
+#include <pcl/visualization/cloud_viewer.h>
+#include <pcl/visualization/image_viewer.h>*/
+
 static unsigned char myimg[640*480*3];
 
+/*
  class SimpleOpenNIViewer
  {
 	public:
@@ -31,7 +32,7 @@ static unsigned char myimg[640*480*3];
 				delete [] data;
 			
 			}
-			*/
+			
 		}
 
 		void run ()
@@ -48,7 +49,7 @@ static unsigned char myimg[640*480*3];
 
 			interface->stop();
 		}
-};
+};*/
 
 int main ()
 { 
@@ -57,9 +58,12 @@ int main ()
 		for (int j = 0; j<480; ++j)
 			for (int c = 0; c<3; ++c)
 				myimg[(i*480+j)*3+c] = (unsigned char) ( 255.0 * sin(7.0*i + 5.0*j) );
+	
+	cv::Mat img(480, 640, CV_8UC3, myimg);
+	cv::imshow("RGB", img);
 
 	
-	SimpleOpenNIViewer v;
-	v.run ();
+	/*SimpleOpenNIViewer v;
+	v.run ();*/
 	return 0;
 }
