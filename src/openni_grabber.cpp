@@ -1,27 +1,22 @@
-#include <cv.h>
-#include <cvaux.h>
-#include <cxcore.h>
-#include <highgui.h>
-#include <cxmisc.h>
+//#include <pcl/io/openni_grabber.h>
+//#include <pcl/visualization/cloud_viewer.h>
+//#include <pcl/visualization/image_viewer.h>
+ 
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
-/*#include <pcl/io/openni_grabber.h>
-#include <pcl/visualization/cloud_viewer.h>
-#include <pcl/visualization/image_viewer.h>*/
+cv::Mat* img;
 
-static unsigned char myimg[640*480*3];
-
-/*
- class SimpleOpenNIViewer
- {
+class SimpleOpenNIViewer
+{
 	public:
 		SimpleOpenNIViewer () {}
 
 		void image_cb (const openni_wrapper::Image::Ptr &openni_img)
 		{
-			cv::Mat img(480, 640, CV_8UC3, myimg);
-			cv::imshow("RGB", img);
+			cv::imgshow( "Window", *img);
 			
-			/*if (!i_viewer.wasStopped())
+			if (!i_viewer.wasStopped())
 			{
 				i_viewer.addRGBImage(myimg, 640, 480);
 				i_viewer.spin();
@@ -32,12 +27,11 @@ static unsigned char myimg[640*480*3];
 				delete [] data;
 			
 			}
-			
 		}
 
 		void run ()
 		{
-			pcl::Grabber* interface= new pcl::OpenNIGrabber();
+			pcl::Grabber* interface = new pcl::OpenNIGrabber();
 			
 			boost::function<void (const openni_wrapper::Image::Ptr&)> f = boost::bind (&SimpleOpenNIViewer::image_cb, this, _1);
 			interface->registerCallback (f);
@@ -49,21 +43,18 @@ static unsigned char myimg[640*480*3];
 
 			interface->stop();
 		}
-};*/
+};
+
 
 int main ()
 { 
-	
-	for (int i = 0; i<640; ++i)
-		for (int j = 0; j<480; ++j)
-			for (int c = 0; c<3; ++c)
-				myimg[(i*480+j)*3+c] = (unsigned char) ( 255.0 * sin(7.0*i + 5.0*j) );
-	
-	cv::Mat img(480, 640, CV_8UC3, myimg);
-	cv::imshow("RGB", img);
+	img = new cv::Mat(640, 480, CV_8UC3, cv::Scalar(1, 0, 0));
 
+	cv::imshow("Mandelbrot", *img);
+	cv::waitKey(0);
+			
+	//SimpleOpenNIViewer v;
+	//v.run ();
 	
-	/*SimpleOpenNIViewer v;
-	v.run ();*/
 	return 0;
 }
