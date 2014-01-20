@@ -12,7 +12,7 @@
 class SimpleOpenNIViewer
 {
 	public:
-		SimpleOpenNIViewer ()  : viewer("Point Cloud"), rgb_(480, 640, CV_8UC3), depth_(480, 640, CV_32FC1), tmp_rgb_(480, 640, CV_8UC3) 
+		SimpleOpenNIViewer ()  : viewer("Point Cloud"), rgb_(480, 640, CV_8UC3), depth_(480, 640, CV_32FC1), tmp_rgb_(480, 640, CV_8UC3)
 		{
 			frame_point_cloud_ = new pcl::PointCloud<pcl::PointXYZRGBA>;
 		}
@@ -25,6 +25,15 @@ class SimpleOpenNIViewer
 		void convertToCvMat(const openni_wrapper::Image::ConstPtr im, cv::Mat& frameRGB)
 		{
 			im->fillRGB(frameRGB.cols,frameRGB.rows,frameRGB.data,frameRGB.step);
+		}
+		
+		cv::Point3f get3DFrom2D(cv::Point2f& p)
+		{
+			float w = depth_.at<float>(p);
+			float x = (w * p.x - cu * w) / ku;
+			float y = (w * p.y - cv * w) / kv;
+			
+			return cv::Point3f(x, y, w);
 		}
 
 		//Gets transform between clouds and call for reconstruction
@@ -63,9 +72,28 @@ class SimpleOpenNIViewer
 			std::vector< cv::DMatch > matches;
 			matcher.match( desc1, desc2, matches );
 			
-			cv::Mat result;
-			drawMatches( im1, key1, im2, key2, matches, result );
+			std::vector<cv::Point3f> points1, points2;
+			//RANSAC
+			for (int i = 0; i <matches.size(); i++)
+			{
+				cv::Point2f coord1 = key1[matches[i].trainIdx].pt;
+				cv::Point2f coord2 = key1[matches[i].queryIdx].pt;
+				
+				cv::Point3f p1 = get3DFrom2D(coord1);
+				cv::Point3f p2 = get3DFrom2D(coord2);
+				
+				points1.push_back( p1 );
+				points2.push_back( p2 );
+			}
+
+			cv::Mat aff;
+			std::vector<uchar> inliers; 
+			int ret = cv::estimateAffine3D(points1, points2, aff, inliers);
 			
+			std::cout << "Tr : " << aff.at<float>(3, 0) << "," << aff.at<float>(3, 1) << "," << aff.at<float>(3, 2) << std::endl;
+			
+			//cv::Mat result;
+			//drawMatches( im1, key1, im2, key2, matches, result );
 			//cv::imwrite("toto.png", result); Works as hell =D !
 			
 			show();
@@ -90,7 +118,7 @@ class SimpleOpenNIViewer
 
 		void run ()
 		{
-			pcl::Grabber* interface = new pcl::OpenNIGrabber();
+			pcl::OpenNIGrabber* interface = new pcl::OpenNIGrabber();
 			
 			boost::function<void (const boost::shared_ptr<openni_wrapper::Image>&, 
 				const boost::shared_ptr<openni_wrapper::DepthImage>&, 
@@ -102,6 +130,13 @@ class SimpleOpenNIViewer
 				boost::bind (&SimpleOpenNIViewer::cloudCallback, this, _1);
 			interface->registerCallback (c_cb);
 			#endif
+			
+			ku = kv = cu = cv = 3;
+			//nterface->getRGBCameraIntrinsics( ku, kv, cu, cv );
+			ku = kv = 500;
+			cu = 320;
+			cv = 240;
+			std::cout << ku << "," << kv << "," << cu << "," << cv << std::endl;
 			
 			interface->start();
 
@@ -116,6 +151,8 @@ class SimpleOpenNIViewer
 		cv::Mat rgb_;
 		cv::Mat depth_;
 		pcl::PointCloud<pcl::PointXYZRGBA>* frame_point_cloud_;
+		
+		double ku, kv, cu, cv;
 		
 		cv::Mat tmp_rgb_; //last frame, used for SIFT transformation computing
 };
