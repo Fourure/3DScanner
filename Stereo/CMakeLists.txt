@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 2.8)
+project( Stereo )
+find_package( OpenCV REQUIRED )
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+add_executable( Stereo estimate.cpp )
+target_link_libraries( Stereo ${OpenCV_LIBS} )
