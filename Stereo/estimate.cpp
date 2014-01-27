@@ -33,6 +33,7 @@ int main( int argc, char** argv )
     //-- Step 2: Calculate descriptors (feature vectors)
     cv::SurfDescriptorExtractor extractor;
     cv::Mat descriptors_1, descriptors_2;
+			
     extractor.compute( img_1, keypoints_1, descriptors_1 );
     extractor.compute( img_2, keypoints_2, descriptors_2 );
 
@@ -109,7 +110,7 @@ int main( int argc, char** argv )
     //     0  0  0
     cv::Mat z = w;
     z.at<double>(2, 2) = 0;
-    cv::Mat tx = vt.t() * z * vt;
+    cv::Mat tx = vt.t() * z * sigma * vt;
     cv::Mat translation(3, 1, CV_64FC1, cv::Scalar(0));
 
     //-- Compute Vector T
